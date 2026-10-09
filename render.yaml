@@ -1,5 +1,5 @@
-# Free-tier default. This workspace currently has no free database slot.
-# After explicit cost approval, change database plan to 0.1c-256mb.
+# Approved deployment: free web service plus dedicated paid Postgres.
+# Render billing information is required before provisioning.
 # At 1 GB: about $6.30/month before tax/additional usage (2026-10-09).
 services:
   - type: web
@@ -25,7 +25,7 @@ services:
 databases:
   - name: clienter-db
     region: singapore
-    plan: free
+    plan: 0.1c-256mb
     diskSizeGB: 1
     postgresMajorVersion: "16"
     databaseName: clienter

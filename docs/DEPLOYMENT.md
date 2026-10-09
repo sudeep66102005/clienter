@@ -21,9 +21,9 @@ Sources:
 
 ## 3. Blueprint deployment
 
-The checked-in Blueprint defaults to the free plan. After authorizing the database cost, change only the database `plan` to `0.1c-256mb`, keep `diskSizeGB: 1`, commit, and push. Then:
+The checked-in Blueprint now selects the approved `0.1c-256mb` database plan with `diskSizeGB: 1`. Provisioning was blocked on 2026-10-09 because Render requires payment information. Add it at https://dashboard.render.com/billing, then continue:
 
-1. Open https://dashboard.render.com/select-repo?type=blueprint .
+1. Open https://dashboard.render.com/blueprint/new?repo=https://github.com/sudeep66102005/clienter .
 2. Select `sudeep66102005/clienter`, branch `main`.
 3. Review `render.yaml`. It creates `clienter-app` and `clienter-db` in Singapore.
 4. Confirm the displayed resource plans and pricing, then apply the Blueprint.

@@ -72,7 +72,7 @@ Integration tests cover session protection, tenant isolation, invoice arithmetic
 
 See [the step-by-step deployment guide](docs/DEPLOYMENT.md). The root `render.yaml` describes a single Node web service that serves both the built frontend and API, plus a PostgreSQL database in Singapore. This same-origin design avoids cross-domain authentication and CORS setup.
 
-**Billing:** the Blueprint defaults to a free web service and free database. This workspace already uses its one free database slot, so deploying here requires approving a new paid database and changing its plan to `0.1c-256mb`. At 1 GB storage, the proposed database costs about $6.30/month before tax/additional usage. Existing unrelated services must not be modified to make room.
+**Billing:** the approved Blueprint selects a free web service and a dedicated paid `0.1c-256mb` database. At 1 GB storage, the database costs about $6.30/month before tax/additional usage. Render currently requires payment information before it can provision this database. Existing unrelated services must not be modified to make room.
 
 ## Deliberate integration boundaries
 
