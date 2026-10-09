@@ -70,9 +70,9 @@ Integration tests cover session protection, tenant isolation, invoice arithmetic
 
 ## Deploy on Render
 
-See [the step-by-step deployment guide](docs/DEPLOYMENT.md). The root `render.yaml` describes a single Node web service that serves both the built frontend and API, plus a PostgreSQL database in Singapore. This same-origin design avoids cross-domain authentication and CORS setup.
+See [the step-by-step deployment guide](docs/DEPLOYMENT.md). The root `render.yaml` describes a single Node web service that serves both the built frontend and API, plus an external Neon Free PostgreSQL database. This same-origin design avoids cross-domain authentication and CORS setup.
 
-**Billing:** the approved Blueprint selects a free web service and a dedicated paid `0.1c-256mb` database. At 1 GB storage, the database costs about $6.30/month before tax/additional usage. Render currently requires payment information before it can provision this database. Existing unrelated services must not be modified to make room.
+**Free deployment:** the Blueprint creates only a Render Free web service. PostgreSQL is supplied by a separate Neon Free project through the secret `DATABASE_URL` environment variable. No paid database is provisioned. Neon Free has no fixed expiry; both services have usage limits, and the free Render web service can sleep when idle. Keep both accounts on their Free plans.
 
 ## Deliberate integration boundaries
 

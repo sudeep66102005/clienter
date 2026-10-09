@@ -1,6 +1,5 @@
-# Approved deployment: free web service plus dedicated paid Postgres.
-# Render billing information is required before provisioning.
-# At 1 GB: about $6.30/month before tax/additional usage (2026-10-09).
+# No paid resources: Render Free web service + external Neon Free Postgres.
+# DATABASE_URL is supplied securely from Neon; never commit its value.
 services:
   - type: web
     name: clienter-app
@@ -18,16 +17,6 @@ services:
       - key: NODE_VERSION
         value: 22.22.0
       - key: DATABASE_URL
-        fromDatabase:
-          name: clienter-db
-          property: connectionString
-
-databases:
-  - name: clienter-db
-    region: singapore
-    plan: 0.1c-256mb
-    diskSizeGB: 1
-    postgresMajorVersion: "16"
-    databaseName: clienter
-    user: clienter
-    ipAllowList: []
+        sync: false
+      - key: DATABASE_SSL
+        value: "true"
