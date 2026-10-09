@@ -1,0 +1,87 @@
+CREATE TABLE IF NOT EXISTS workspaces (
+ id TEXT PRIMARY KEY, name TEXT NOT NULL, currency TEXT NOT NULL DEFAULT 'INR',
+ address TEXT NOT NULL DEFAULT '', tax_id TEXT NOT NULL DEFAULT '', created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS clients (
+ id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL REFERENCES workspaces(id), name TEXT NOT NULL,
+ email TEXT NOT NULL, company TEXT NOT NULL DEFAULT '', phone TEXT NOT NULL DEFAULT '',
+ status TEXT NOT NULL DEFAULT 'active', notes TEXT NOT NULL DEFAULT '', created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS clients_workspace ON clients(workspace_id);
+CREATE TABLE IF NOT EXISTS users (
+ id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL REFERENCES workspaces(id), name TEXT NOT NULL,
+ email TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL, role TEXT NOT NULL CHECK(role IN ('owner','member','client')),
+ client_id TEXT REFERENCES clients(id), created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS sessions (
+ token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+ expires_at TIMESTAMPTZ NOT NULL
+);
+CREATE TABLE IF NOT EXISTS invitations (
+ id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL REFERENCES workspaces(id), email TEXT NOT NULL,
+ role TEXT NOT NULL CHECK(role IN ('member','client')), client_id TEXT REFERENCES clients(id),
+ token_hash TEXT NOT NULL UNIQUE, expires_at TIMESTAMPTZ NOT NULL, used BOOLEAN NOT NULL DEFAULT FALSE
+);
+CREATE TABLE IF NOT EXISTS leads (
+ id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL REFERENCES workspaces(id), name TEXT NOT NULL,
+ email TEXT NOT NULL DEFAULT '', company TEXT NOT NULL DEFAULT '', phone TEXT NOT NULL DEFAULT '',
+ source TEXT NOT NULL DEFAULT 'Website', stage TEXT NOT NULL DEFAULT 'New', value INTEGER NOT NULL DEFAULT 0,
+ follow_up TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '', converted_client_id TEXT REFERENCES clients(id),
+ created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS projects (
+ id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL REFERENCES workspaces(id), client_id TEXT NOT NULL REFERENCES clients(id),
+ name TEXT NOT NULL, description TEXT NOT NULL DEFAULT '', status TEXT NOT NULL DEFAULT 'Planned',
+ budget INTEGER NOT NULL DEFAULT 0, due_date TEXT NOT NULL DEFAULT '', shared BOOLEAN NOT NULL DEFAULT TRUE,
+ created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS projects_workspace ON projects(workspace_id);
+CREATE TABLE IF NOT EXISTS tasks (
+ id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL REFERENCES workspaces(id), project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+ title TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'To do', priority TEXT NOT NULL DEFAULT 'Medium',
+ assignee_id TEXT REFERENCES users(id), due_date TEXT NOT NULL DEFAULT '', created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS invoices (
+ id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL REFERENCES workspaces(id), client_id TEXT NOT NULL REFERENCES clients(id),
+ number TEXT NOT NULL, items JSONB NOT NULL, subtotal INTEGER NOT NULL, tax_rate NUMERIC NOT NULL DEFAULT 0,
+ tax INTEGER NOT NULL DEFAULT 0, total INTEGER NOT NULL, paid INTEGER NOT NULL DEFAULT 0,
+ due_date TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '', status TEXT NOT NULL DEFAULT 'Draft',
+ created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(), UNIQUE(workspace_id, number)
+);
+CREATE TABLE IF NOT EXISTS payments (
+ id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL REFERENCES workspaces(id), invoice_id TEXT NOT NULL REFERENCES invoices(id),
+ amount INTEGER NOT NULL CHECK(amount > 0), reference TEXT NOT NULL DEFAULT '', created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS expenses (
+ id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL REFERENCES workspaces(id), title TEXT NOT NULL,
+ category TEXT NOT NULL DEFAULT 'Other', amount INTEGER NOT NULL, date TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS retainers (
+ id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL REFERENCES workspaces(id), client_id TEXT NOT NULL REFERENCES clients(id),
+ name TEXT NOT NULL, amount INTEGER NOT NULL, deliverables INTEGER NOT NULL DEFAULT 15,
+ delivered INTEGER NOT NULL DEFAULT 0, period TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'Active', created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS retainer_invoices (
+ retainer_id TEXT NOT NULL REFERENCES retainers(id), period TEXT NOT NULL,
+ invoice_id TEXT NOT NULL REFERENCES invoices(id), PRIMARY KEY(retainer_id,period)
+);
+CREATE TABLE IF NOT EXISTS meetings (
+ id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL REFERENCES workspaces(id), client_id TEXT REFERENCES clients(id),
+ title TEXT NOT NULL, starts_at TEXT NOT NULL, duration INTEGER NOT NULL DEFAULT 30,
+ location TEXT NOT NULL DEFAULT '', notes TEXT NOT NULL DEFAULT '', created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS documents (
+ id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL REFERENCES workspaces(id), client_id TEXT NOT NULL REFERENCES clients(id),
+ title TEXT NOT NULL, type TEXT NOT NULL DEFAULT 'Proposal', body TEXT NOT NULL DEFAULT '', url TEXT NOT NULL DEFAULT '',
+ shared BOOLEAN NOT NULL DEFAULT FALSE, accepted_by TEXT, accepted_at TIMESTAMPTZ,
+ created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS comments (
+ id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL REFERENCES workspaces(id), project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+ user_id TEXT NOT NULL REFERENCES users(id), body TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS reviews (
+ id TEXT PRIMARY KEY, workspace_id TEXT NOT NULL REFERENCES workspaces(id), project_id TEXT NOT NULL UNIQUE REFERENCES projects(id),
+ client_id TEXT NOT NULL REFERENCES clients(id), rating INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5),
+ body TEXT NOT NULL, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

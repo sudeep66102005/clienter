@@ -1,0 +1,27 @@
+services:
+  database:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: clienter
+      POSTGRES_USER: clienter
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set a local development database password}
+    volumes:
+      - clienter-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clienter"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  app:
+    build: .
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://clienter:${POSTGRES_PASSWORD}@database:5432/clienter
+      APP_URL: http://localhost:3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      database:
+        condition: service_healthy
+volumes:
+  clienter-db:
